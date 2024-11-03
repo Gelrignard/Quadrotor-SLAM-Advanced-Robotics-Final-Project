@@ -27,7 +27,7 @@ from proj3.code.world_traj import WorldTraj
 np.random.seed(0)
 
 # Load the test example.
-filename = 'test_maze.json'
+filename = 'test_over_under.json'
 file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / '..' / 'util' / filename
 world = World.from_file(file)          # World boundary and obstacles.
 # resolution = world.world['resolution'] # (x,y,z) resolution of discretization, shape=(3,).

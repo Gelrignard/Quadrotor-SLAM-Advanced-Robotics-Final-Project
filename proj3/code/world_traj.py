@@ -50,7 +50,7 @@ class WorldTraj(object):
 
         # STUDENT CODE HERE
         # velocity
-        v = 2.92
+        v = 2
         # ramer douglas peucker algorithm, initial point set
         point = self.ramer_douglas_peucker(self.path, 0.25)
         inipath = point
