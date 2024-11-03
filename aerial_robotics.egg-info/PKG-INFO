@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: aerial-robotics
+Version: 0.1
+Requires-Dist: pyyaml
+Requires-Dist: opencv-python
+Requires-Dist: cvxopt
+Requires-Dist: matplotlib==3.2.2
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: timeout_decorator
