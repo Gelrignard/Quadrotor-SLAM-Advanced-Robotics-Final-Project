@@ -9,7 +9,7 @@ def interp_path(path, res):
     if cumdist[-1] > 0:
         t = np.insert(cumdist,0,0)
         ts = np.arange(0, cumdist[-1], res)
-        pts = np.empty((ts.size, 3), dtype=np.float)
+        pts = np.empty((ts.size, 3), dtype=np.float64)
         for k in range(3):
             pts[:,k] = np.interp(ts, t, path[:,k])
     else:

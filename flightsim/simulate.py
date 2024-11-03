@@ -226,20 +226,20 @@ def sanitize_control_dic(control_dic):
     """
     Return a sanitized version of the control dictionary where all of the elements are np arrays
     """
-    control_dic['cmd_motor_speeds'] = np.asarray(control_dic['cmd_motor_speeds'], np.float).ravel()
-    control_dic['cmd_moment'] = np.asarray(control_dic['cmd_moment'], np.float).ravel()
-    control_dic['cmd_q'] = np.asarray(control_dic['cmd_q'], np.float).ravel()
+    control_dic['cmd_motor_speeds'] = np.asarray(control_dic['cmd_motor_speeds'], np.float64).ravel()
+    control_dic['cmd_moment'] = np.asarray(control_dic['cmd_moment'], np.float64).ravel()
+    control_dic['cmd_q'] = np.asarray(control_dic['cmd_q'], np.float64).ravel()
     return control_dic
 
 def sanitize_trajectory_dic(trajectory_dic):
     """
     Return a sanitized version of the trajectory dictionary where all of the elements are np arrays
     """
-    trajectory_dic['x'] = np.asarray(trajectory_dic['x'], np.float).ravel()
-    trajectory_dic['x_dot'] = np.asarray(trajectory_dic['x_dot'], np.float).ravel()
-    trajectory_dic['x_ddot'] = np.asarray(trajectory_dic['x_ddot'], np.float).ravel()
-    trajectory_dic['x_dddot'] = np.asarray(trajectory_dic['x_dddot'], np.float).ravel()
-    trajectory_dic['x_ddddot'] = np.asarray(trajectory_dic['x_ddddot'], np.float).ravel()
+    trajectory_dic['x'] = np.asarray(trajectory_dic['x'], np.float64).ravel()
+    trajectory_dic['x_dot'] = np.asarray(trajectory_dic['x_dot'], np.float64).ravel()
+    trajectory_dic['x_ddot'] = np.asarray(trajectory_dic['x_ddot'], np.float64).ravel()
+    trajectory_dic['x_dddot'] = np.asarray(trajectory_dic['x_dddot'], np.float64).ravel()
+    trajectory_dic['x_ddddot'] = np.asarray(trajectory_dic['x_ddddot'], np.float64).ravel()
 
     return trajectory_dic
 

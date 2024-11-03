@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import numpy as np
 from numpy.linalg import inv
@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from scipy.spatial.transform import Rotation
 
 
-#%% Functions
+# %% Functions
 
 def nominal_state_update(nominal_state, w_m, a_m, dt):
     """
@@ -26,7 +26,12 @@ def nominal_state_update(nominal_state, w_m, a_m, dt):
     new_p = np.zeros((3, 1))
     new_v = np.zeros((3, 1))
     new_q = Rotation.identity()
-
+    R = q.as_matrix()
+    new_p = p + v * dt + 1 / 2 * (R @ (a_m - a_b) + g) * dt ** 2
+    new_v = v + (R @ (a_m - a_b) + g) * dt
+    q_diff = q * Rotation.from_rotvec(((w_m - w_b) * dt).reshape(3, ))
+    # new_q = Rotation.from_rotvec(np.cross(q.as_rotvec(), q_diff.as_rotvec()).reshape(3,))
+    new_q = q_diff
     return new_p, new_v, new_q, a_b, w_b, g
 
 
@@ -53,9 +58,31 @@ def error_covariance_update(nominal_state, error_state_covariance, w_m, a_m, dt,
     p, v, q, a_b, w_b, g = nominal_state
 
     # YOUR CODE HERE
-
+    R = q.as_matrix()
+    I = np.eye(3)
+    F230 = (R @ [a_m - a_b]).reshape(3, )
+    F231 = np.array([[0, -F230[2], F230[1]],
+                     [F230[2], 0, -F230[0]],
+                     [-F230[1], F230[0], 0]])
+    Fx1 = np.hstack((I, I * dt, np.zeros([3, 12])))
+    Fx2 = np.hstack((np.zeros([3, 3]), I, - F231 * dt, - R * dt, np.zeros([3, 3]), I * dt))
+    Fx3 = np.hstack((np.zeros((3, 6)), Rotation.from_rotvec(((w_m - w_b) * dt).reshape(3, )).as_matrix().T,
+                     np.zeros((3, 3)), -I * dt, np.zeros((3, 3))))
+    Fx4 = np.hstack((np.zeros((9, 9)), np.eye(9)))
+    Fx = np.vstack((Fx1, Fx2, Fx3, Fx4))
+    P1 = Fx @ error_state_covariance @ Fx.T
+    # P2
+    Qi = np.diag([accelerometer_noise_density ** 2 * dt ** 2, accelerometer_noise_density ** 2 * dt ** 2,
+                  accelerometer_noise_density ** 2 * dt ** 2,
+                  gyroscope_noise_density ** 2 * dt ** 2, gyroscope_noise_density ** 2 * dt ** 2,
+                  gyroscope_noise_density ** 2 * dt ** 2,
+                  accelerometer_random_walk ** 2 * dt, accelerometer_random_walk ** 2 * dt,
+                  accelerometer_random_walk ** 2 * dt,
+                  gyroscope_random_walk ** 2 * dt, gyroscope_random_walk ** 2 * dt, gyroscope_random_walk ** 2 * dt])
+    Fi = np.vstack((np.zeros([3, 12]), np.eye(12), np.zeros([3, 12])))
+    P2 = Fi @ Qi @ Fi.T
     # return an 18x18 covariance matrix
-    return np.identity(18)
+    return P1 + P2
 
 
 def measurement_update_step(nominal_state, error_state_covariance, uv, Pw, error_threshold, Q):
@@ -72,10 +99,36 @@ def measurement_update_step(nominal_state, error_state_covariance, uv, Pw, error
     :param Q: 2x2 image covariance matrix
     :return: new_state_tuple, new error state covariance matrix
     """
-    
+
     # Unpack nominal_state tuple
     p, v, q, a_b, w_b, g = nominal_state
-
+    Q = Q / 4
     # YOUR CODE HERE - compute the innovation next state, next error_state covariance
-    innovation = np.zeros((2, 1))
-    return (p, v, q, a_b, w_b, g), error_state_covariance, innovation
+    R = q.as_matrix()
+    Pc = R.T @ (Pw - p)
+    x = Pc[0, 0]
+    y = Pc[1, 0]
+    z = Pc[2, 0]
+    print("xyz", x, y, z)
+    Zt = np.array([[x / z], [y / z]])
+    innovation = uv - Zt
+    if norm(innovation) > error_threshold:
+        return (p, v, q, a_b, w_b, g), error_state_covariance, innovation
+
+    dPc_dthe = np.array([[0, -Pc[2, 0], Pc[1, 0]],
+                         [Pc[2, 0], 0, -Pc[0, 0]],
+                         [-Pc[1, 0], Pc[0, 0], 0]])
+    dPc_dp = -R.T
+    dzt_dPc = np.array([[1, 0, -x / z],
+                        [0, 1, -y / z]])
+    Ht = np.hstack((dzt_dPc @ dPc_dp * 1 / z, np.zeros([2, 3]), dzt_dPc @ dPc_dthe * 1 / z, np.zeros((2, 9))))
+    Kt = error_state_covariance @ Ht.T @ inv(Ht @ error_state_covariance @ Ht.T + Q)
+    error_state_covariance2 = (np.eye(18) - Kt @ Ht) @ error_state_covariance @ (np.eye(18) - Kt @ Ht).T + Kt @ Q @ Kt.T
+    dx = Kt @ innovation
+    dp = dx[0:3, :].reshape(3, 1)
+    dv = dx[3:6, :].reshape(3, 1)
+    dq = Rotation.from_rotvec(dx[6:9, :].reshape(3, ))
+    dab = dx[9:12, :].reshape(3, 1)
+    dwb = dx[12:15, :].reshape(3, 1)
+    dg = dx[15:18, :].reshape(3, 1)
+    return (p + dp, v + dv, q * dq, a_b + dab, w_b + dwb, g + dg), error_state_covariance2, innovation
