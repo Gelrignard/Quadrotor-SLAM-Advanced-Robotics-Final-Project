@@ -20,10 +20,7 @@ The specific steps for the Project is:
 
 <table>
   <tr>
-    <!-- First GIF -->
     <td><img src="maze.gif" width="100%" /></td>
-
-    <!-- Second GIF -->
     <td><img src="overunder.gif" width="100%" /></td>
   </tr>
 </table>
