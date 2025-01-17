@@ -1,4 +1,4 @@
-# MEAM-6200-Advanced-Robotics
+# Quadrotor-SLAM-Advanced-Robotics-Final-Project
 
 This is the repository for MEAM 6200 Final Project: An Autonomous VIO-based Quadcopter.
 
